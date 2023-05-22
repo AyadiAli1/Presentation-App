@@ -81,9 +81,48 @@ class PresenterPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Presenter Page'),
+        centerTitle: true,
       ),
-      body: Center(
-        child: Text('You logged in as a presenter'),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ElevatedButton(
+                  onPressed: () {},
+                  child: Text('Choose a file'),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: Text('Start Presentation'),
+                ),
+              ],
+            ),
+          ),
+          Align(
+            alignment: FractionalOffset.bottomLeft,
+            child: Container(
+              padding: EdgeInsets.only(left: 16.0, right: 16.0),
+              child: Text(
+                'Support',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+          Align(
+            alignment: FractionalOffset.bottomRight,
+            child: Container(
+              padding: EdgeInsets.only(left: 16.0, right: 16.0),
+              child: Text(
+                'Version 1.0',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -95,6 +134,20 @@ class AudiencePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Audience Page'),
+      ),
+      body: Center(
+        child: Text('You logged in as an audience'),
+      ),
+    );
+  }
+}
+
+class PresentationPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Presentation Page'),
       ),
       body: Center(
         child: Text('You logged in as an audience'),
