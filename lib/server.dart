@@ -1,5 +1,7 @@
 import 'dart:io';
-
+// ignore: unused_import
+import 'package:flutter/widgets.dart';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 
 Future<void> main() async {
@@ -14,6 +16,8 @@ Future<void> main() async {
 List<Socket> clients = [];
 
 handleConnection(Socket client) {
+  print(
+      "Server: Connection from ${client.remoteAddress.address}:${client.remotePort}");
   client.listen((Uint8List data) {
     final message = String.fromCharCodes(data);
     clients.add(client);
