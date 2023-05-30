@@ -1,7 +1,8 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-//import 'client.dart';
-//import 'server.dart';
 void main() {
   runApp(MaterialApp(
     home: MyApp(),
@@ -77,8 +78,16 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class PresenterPage extends StatelessWidget {
+class PresenterPage extends StatefulWidget {
   @override
+  State<PresenterPage> createState() => _PresenterPageState();
+}
+
+class _PresenterPageState extends State<PresenterPage> {
+  @override
+  late Future<File?> file;
+  late String chosenFile = '';
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -93,10 +102,16 @@ class PresenterPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    pickFile();
+                  },
                   child: Text('Choose a file'),
                 ),
                 SizedBox(height: 20),
+                Text('You chose: $chosenFile\n',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
                 ElevatedButton(
                   onPressed: () {},
                   child: Text('Start Presentation'),
@@ -127,6 +142,19 @@ class PresenterPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['ppt', 'pptx'],
+    );
+    if (result != null) {
+      setState(() {
+        chosenFile = result.files.single.name!;
+        file = Future.value(File(result.files.single.path!));
+      });
+    }
   }
 }
 
