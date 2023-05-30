@@ -1,22 +1,8 @@
 import 'dart:io';
-import 'audience.dart';
-import 'main.dart';
+//import 'audience.dart';
+//import 'main.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-
-class PresentationPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Presentation Page'),
-      ),
-      body: Center(
-        child: Text('You logged in as an audience'),
-      ),
-    );
-  }
-}
 
 class PresenterPage extends StatefulWidget {
   @override
@@ -24,7 +10,6 @@ class PresenterPage extends StatefulWidget {
 }
 
 class _PresenterPageState extends State<PresenterPage> {
-  @override
   late Future<File?> file;
   late String chosenFile = '';
 
