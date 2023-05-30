@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "578978545524",
+    "project_id": "mis-presentation-app",
+    "storage_bucket": "mis-presentation-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578978545524:android:0b7851802844a615da7621",
+        "android_client_info": {
+          "package_name": "com.example.mis_app_test"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZFfUGNlit3XWxgISatqFtEid19jtMGJg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
