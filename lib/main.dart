@@ -1,8 +1,9 @@
 import 'dart:io';
-
+import 'audience.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:mis_app_test/presenter.dart';
 import 'package:path/path.dart' as path;
 
 void main() {
@@ -122,7 +123,8 @@ class _PresenterPageState extends State<PresenterPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PresentationPage(file: selectedFile!),
+                          builder: (context) =>
+                              PresentationPage(file: selectedFile!),
                         ),
                       );
                     } else {
@@ -132,7 +134,8 @@ class _PresenterPageState extends State<PresenterPage> {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: Text('No File Selected'),
-                            content: Text('Please choose a file before starting the presentation.'),
+                            content: Text(
+                                'Please choose a file before starting the presentation.'),
                             actions: [
                               TextButton(
                                 onPressed: () {
@@ -187,94 +190,5 @@ class _PresenterPageState extends State<PresenterPage> {
         chosenFile = path.basename(result.files.single.path!);
       });
     }
-  }
-}
-
-class AudiencePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Audience Page'),
-      ),
-      body: Center(
-        child: Text('You are logged in as an audience.'),
-      ),
-    );
-  }
-}
-
-class PresentationPage extends StatefulWidget {
-  final File file;
-
-  PresentationPage({required this.file});
-
-  @override
-  _PresentationPageState createState() => _PresentationPageState();
-}
-
-class _PresentationPageState extends State<PresentationPage> {
-  late PDFViewController _pdfController;
-  int? _currentPage = 0;
-  int? _totalPages = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Presentation Page'),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: PDFView(
-              filePath: widget.file.path,
-              onViewCreated: (PDFViewController pdfController) {
-                _pdfController = pdfController;
-                _pdfController.getPageCount().then((count) {
-                  setState(() {
-                    _totalPages = count;
-                  });
-                });
-              },
-              onPageChanged: (int? page, int? total) {
-                setState(() {
-                  _currentPage = page;
-                  _totalPages = total;
-                });
-              },
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: () {
-                  if (_pdfController != null && _currentPage! > 0) {
-                    _pdfController.setPage(_currentPage! - 1);
-                  }
-                },
-                icon: Icon(Icons.arrow_back),
-              ),
-              IconButton(
-                onPressed: () {
-                  if (_pdfController != null && _currentPage! < _totalPages! - 1) {
-                    _pdfController.setPage(_currentPage! + 1);
-                  }
-                },
-                icon: Icon(Icons.arrow_forward),
-              ),
-            ],
-          ),
-          IconButton(
-            onPressed: () {
-              // Navigate back to the main menu
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.pause),
-          ),
-        ],
-      ),
-    );
   }
 }

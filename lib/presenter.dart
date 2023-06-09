@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 
 class PresenterPage extends StatefulWidget {
   @override
@@ -100,48 +101,110 @@ class _PresenterPageState extends State<PresenterPage> {
   }
 }
 
+class PresentationPage extends StatefulWidget {
+  final File file;
+
+  PresentationPage({required this.file});
+
+  @override
+  _PresentationPageState createState() => _PresentationPageState();
+}
+
+class _PresentationPageState extends State<PresentationPage> {
+  final Future<FirebaseApp> _fApp = Firebase.initializeApp();
+  late Future<File?> file;
+  late PDFViewController _pdfController;
+  int? _currentPage = 0;
+  int? _totalPages = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Presentation Page'),
+      ),
+      body: FutureBuilder(
+        future: _fApp,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('something wrong with Firebase');
+          } else if (snapshot.hasData) {
+            return content();
+          } else {
+            return CircularProgressIndicator();
+          }
+        },
+      ),
+    );
+  }
+
+  Widget content() {
+    return Column(
+      children: [
+        Expanded(
+          child: PDFView(
+            filePath: widget.file.path,
+            onViewCreated: (PDFViewController pdfController) {
+              _pdfController = pdfController;
+              _pdfController.getPageCount().then((count) {
+                setState(() {
+                  _totalPages = count;
+                });
+              });
+            },
+            onPageChanged: (int? page, int? total) {
+              setState(() {
+                _currentPage = page;
+                _totalPages = total;
+                change_slide_number(_currentPage);
+              });
+            },
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: () {
+                if (_pdfController != null && _currentPage! > 0) {
+                  _pdfController.setPage(_currentPage! - 1);
+                  change_slide_number(_currentPage);
+                }
+              },
+              icon: Icon(Icons.arrow_back),
+            ),
+            IconButton(
+              onPressed: () {
+                if (_pdfController != null &&
+                    _currentPage! < _totalPages! - 1) {
+                  _pdfController.setPage(_currentPage! + 1);
+                  change_slide_number(_currentPage);
+                }
+              },
+              icon: Icon(Icons.arrow_forward),
+            ),
+          ],
+        ),
+        IconButton(
+          onPressed: () {
+            // Navigate back to the main menu
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.pause),
+        ),
+      ],
+    );
+  }
+}
+
 // method to change the slide and update the value in the realtime database
-void change_slide_number(int check) async {
+void change_slide_number(int? check) async {
   DatabaseReference _slideref = FirebaseDatabase.instance
       .ref()
       .child('slide_nummer')
       .child('keyToUpdate');
-
-  if (check == 1) {
-    DataSnapshot snapshot = await _slideref.get();
-    dynamic value = snapshot.value;
-
-    int? current_value = int.tryParse(value);
-    int? new_value = current_value;
-    Map<String, dynamic> updateData = {
-      'keyToUpdate': new_value,
-    };
-    _slideref.update(updateData);
-  } else if (check == 3) {
-    // when we upload a new presentation, we will go back to the first slide
-    _slideref.update(0 as Map<String, Object?>);
-  } else if (check == 2) {
-    DataSnapshot snapshot = await _slideref.get();
-    String current_value_string = snapshot.value.toString();
-    int current_value = snapshot.value as int;
-    int new_value = current_value--;
-    Map<String, dynamic> updateData = {
-      'keyToUpdate': new_value,
-    };
-    _slideref.update(updateData);
-  }
-}
-
-int convertStringToInt(String value) {
-  int intValue = 0;
-  for (int i = 0; i < value.length; i++) {
-    int digit = value.codeUnitAt(i) - '0'.codeUnitAt(0);
-    if (digit >= 0 && digit <= 9) {
-      intValue = intValue * 10 + digit;
-    } else {
-      // Handle invalid input or non-numeric characters
-      return 2; // or a default value if desired
-    }
-  }
-  return intValue;
+  Map<String, dynamic> updateData = {
+    'keyToUpdate': check,
+  };
+  _slideref.update(updateData);
 }
