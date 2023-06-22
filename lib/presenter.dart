@@ -6,100 +6,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-
-class PresenterPage extends StatefulWidget {
-  @override
-  State<PresenterPage> createState() => _PresenterPageState();
-}
-
-class _PresenterPageState extends State<PresenterPage> {
-  final Future<FirebaseApp> _fApp = Firebase.initializeApp();
-  late Future<File?> file;
-  late String chosenFile = '';
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Presenter Page')),
-      body: FutureBuilder(
-        future: _fApp,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('something wrong with Firebase');
-          } else if (snapshot.hasData) {
-            return content();
-          } else {
-            return CircularProgressIndicator();
-          }
-        },
-      ),
-    );
-  }
-
-  Widget content() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              ElevatedButton(
-                onPressed: () {
-                  pickFile();
-                },
-                child: Text('Choose a file'),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'You chose: $chosenFile\n',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  change_slide_number(1);
-                },
-                child: Text('Start Presentation'),
-              ),
-            ],
-          ),
-        ),
-        Align(
-          alignment: FractionalOffset.bottomLeft,
-          child: Container(
-            padding: EdgeInsets.only(left: 16.0, right: 16.0),
-            child: Text(
-              'Support',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        Align(
-          alignment: FractionalOffset.bottomRight,
-          child: Container(
-            padding: EdgeInsets.only(left: 16.0, right: 16.0),
-            child: Text(
-              'Version 1.0',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['ppt', 'pptx'],
-    );
-    if (result != null) {
-      setState(() {
-        chosenFile = result.files.single.name;
-        file = Future.value(File(result.files.single.path!));
-      });
-    }
-  }
-}
+import 'package:firebase_storage/firebase_storage.dart';
+//import 'shared_variables.dart';
 
 class PresentationPage extends StatefulWidget {
   final File file;
@@ -115,7 +23,31 @@ class _PresentationPageState extends State<PresentationPage> {
   late Future<File?> file;
   late PDFViewController _pdfController;
   int? _currentPage = 0;
+  //int? _currentPage1 = 0;
+
   int? _totalPages = 0;
+
+  // DatabaseReference _slideref = FirebaseDatabase.instance
+  //   .ref()
+  // .child('slide_nummer')
+  ////.child('keyToUpdate');
+
+  //void initState() {
+  // super.initState();
+  //isten for changes
+  /* _slideref.onValue.listen((event) {
+      final dynamic value = event.snapshot.value;
+      if (value != null && value is Map<Object?, Object?>) {
+        final dynamic keyToUpdate = value['keyToUpdate'];
+        if (keyToUpdate != null && keyToUpdate is int) {
+          setState(() {
+            _currentPage = keyToUpdate;
+            _pdfController.setPage(_currentPage);
+          });
+        }
+      }
+    });*/
+  //}
 
   @override
   Widget build(BuildContext context) {
