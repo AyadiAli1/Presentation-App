@@ -25,7 +25,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf_render/pdf_render.dart' as pdflib;
 
 //import 'package:flutter_plugin_pdf_viewer/flutter_plugin_pdf_viewer.dart';
-String filepath = 'files/$chosenFile';
+//String chosenFile1 = 'SQN-Mischer_v20';
+late String chosenFile1 = '';
+String filepath = '';
 bool _isLoading = true;
 //pdflib.PdfDocument? document = null;
 int initialPage = 0;
@@ -36,6 +38,7 @@ int _currentPage = 0;
 int? _currentPage1 = 0;
 late File file1 = File('');
 int currentSlideNumber = 1;
+bool _isPDFloaded = true;
 
 class AudiencePage extends StatefulWidget {
   //final File files;
@@ -45,7 +48,6 @@ class AudiencePage extends StatefulWidget {
 }
 
 class _AudiencePageState extends State<AudiencePage> {
-  @override
   final Future<FirebaseApp> _fApp = Firebase.initializeApp();
   String current_slide = "";
   late String pdfUrl = "";
@@ -57,7 +59,18 @@ class _AudiencePageState extends State<AudiencePage> {
       .child('slide_nummer')
       .child('keyToUpdate');
 
+  DatabaseReference _slideref2 =
+      FirebaseDatabase.instance.ref().child('presentation_name').child('name');
+
   Future<String> getDownloadUrl(String filePath) async {
+    _slideref2.onValue.listen((event) {
+      final dynamic value = event.snapshot.value;
+      if (value != null && value is Map<dynamic, dynamic>) {
+        final dynamic valeur = value['name'];
+        chosenFile1 = valeur;
+      }
+    });
+    filePath = 'files/$chosenFile1';
     String downloadUrl = await _storage.ref().child(filePath).getDownloadURL();
     return downloadUrl;
   }
@@ -68,7 +81,7 @@ class _AudiencePageState extends State<AudiencePage> {
     Directory tempDir = await getTemporaryDirectory();
     String tempPath = tempDir.path;
 
-    File new_file = File('$tempPath/$filename.pdf');
+    File new_file = File('$tempPath/$filename');
 
     await ref.writeToFile(new_file);
 
@@ -78,7 +91,10 @@ class _AudiencePageState extends State<AudiencePage> {
   void loadDocument() async {
     String url = await getDownloadUrl(filepath);
     pdfUrl = url;
-    file1 = await downloadFile(url, chosenFile);
+    print(filepath);
+
+    print(chosenFile1);
+    file1 = await downloadFile(url, chosenFile1);
 
     //final bytes = await file.readAsBytes();
 
@@ -92,6 +108,7 @@ class _AudiencePageState extends State<AudiencePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    //_fApp;
     loadDocument();
     _slideref.onValue.listen((event) {
       final dynamic value = event.snapshot.value;
@@ -106,38 +123,11 @@ class _AudiencePageState extends State<AudiencePage> {
       }
     });
   }
-  /*void openPDF() async {
-    // Specify the path of the existing PDF file
-    // String filePath = '/path/to/your/pdf/file.pdf';
-    String url = await getDownloadUrl(filepath);
-    pdfUrl = url;
-    File file = await downloadFile(url, chosenFile);
-    // Load the PDF document
-    final document = pdflib.PdfDocument.openFile(file.path);
-    pathing = file.path;
-
-    // Get a reference to the numeric value stored in the Firebase Realtime Database
-    final databaseReference = FirebaseDatabase.instance
-        .ref()
-        .child('slide_nummer')
-        .child('keyToUpdate');
-
-    // Navigate to the PDF viewer screen
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MyPDFViewer(
-          document: document,
-          databaseReference: databaseReference,
-        ),
-      ),
-    );
-  }*/
 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(chosenFile),
+        title: Text(chosenFile1),
       ),
       body: FutureBuilder(
         future: _fApp,
@@ -155,48 +145,6 @@ class _AudiencePageState extends State<AudiencePage> {
       ),
     );
   }
-/*
-  Widget content() {
-    DatabaseReference slideNumberRef = FirebaseDatabase.instance
-        .ref()
-        .child('slide_number')
-        .child('KeyToUpdate');
-
-    int currentSlideNumber = 1;
-
-    void listenToSlideNumberChanges() {
-      slideNumberRef.onValue.listen((event) {
-        final dataSnapshot = event.snapshot;
-        if (dataSnapshot.value != null) {
-          final newSlideNumber = dataSnapshot.value as int;
-          setState(() {
-            currentSlideNumber = newSlideNumber;
-          });
-          // _pdfController?.setPage(currentSlideNumber);
-          return newSlideNumber;
-        }
-      });
-    }
-
-    return Column(
-      children: [
-        Expanded(
-          child: PdfViewer.openFile(
-            file.path,
-            params: PdfViewerParams(
-              pageNumber: currentSlideNumber,
-              scrollDirection: Axis.horizontal,
-              onViewerControllerInitialized: (PDFViewController c) {
-                _pdfController = c;
-                _pdfController.getPageCount();
-                listenToSlideNumberChanges(); // Start listening to slide number changes
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }*/
 
   Widget content() {
     return Column(
@@ -216,7 +164,7 @@ class _AudiencePageState extends State<AudiencePage> {
               setState(() {
                 _currentPage1 = page;
                 _totalPages = total;
-                change_slide_number(_currentPage);
+                // change_slide_number(_currentPage);
               });
             },
           ),
@@ -256,53 +204,3 @@ class _AudiencePageState extends State<AudiencePage> {
     );
   }
 }
-/*class MyPDFViewer extends StatelessWidget {
-  final PDFDocument document;
-
-  MyPDFViewer(this.document);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('PDF Viewer'),
-      ),
-      body: Center(child: PDFViewer(document: document)),
-    );
-  }
-}*/
-
-/*class MyPDFViewer extends StatefulWidget {
-  final PDFDocument document;
-  final DatabaseReference databaseReference;
-
-  MyPDFViewer({required this.document, required this.databaseReference});
-
-  @override
-  _MyPDFViewerState createState() => _MyPDFViewerState();
-}
-
-class _MyPDFViewerState extends State<MyPDFViewer> {
-  int currentPage = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.databaseReference.onValue.listen((event) {
-      setState(() {
-        currentPage = event.snapshot.value as int;
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('PDF Viewer'),
-      ),
-      body: pdflib.PdfDocument.openFile(pathing)
-      ),
-    );
-  }
-}*/

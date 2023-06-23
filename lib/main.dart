@@ -10,9 +10,12 @@ import 'package:path/path.dart' as path;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'shared_variables.dart';
 import 'package:get/get.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-void main() {
-  runApp(GetMaterialApp(
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MaterialApp(
     home: MyApp(),
   ));
 }
@@ -20,70 +23,66 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (BuildContext context) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('Presentation App'),
-            centerTitle: true,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Presentation App'),
+        centerTitle: true,
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PresenterPage(),
+                      ),
+                    );
+                  },
+                  child: Text('Presenter'),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AudiencePage(),
+                      ),
+                    );
+                  },
+                  child: Text('Audience'),
+                ),
+              ],
+            ),
           ),
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PresenterPage(),
-                          ),
-                        );
-                      },
-                      child: Text('Presenter'),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AudiencePage(),
-                          ),
-                        );
-                      },
-                      child: Text('Audience'),
-                    ),
-                  ],
-                ),
+          Align(
+            alignment: FractionalOffset.bottomLeft,
+            child: Container(
+              padding: EdgeInsets.only(left: 16.0, right: 16.0),
+              child: Text(
+                'Support',
+                style: TextStyle(fontSize: 16),
               ),
-              Align(
-                alignment: FractionalOffset.bottomLeft,
-                child: Container(
-                  padding: EdgeInsets.only(left: 16.0, right: 16.0),
-                  child: Text(
-                    'Support',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-              Align(
-                alignment: FractionalOffset.bottomRight,
-                child: Container(
-                  padding: EdgeInsets.only(left: 16.0, right: 16.0),
-                  child: Text(
-                    'Version 1.0',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+          Align(
+            alignment: FractionalOffset.bottomRight,
+            child: Container(
+              padding: EdgeInsets.only(left: 16.0, right: 16.0),
+              child: Text(
+                'Version 1.0',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -100,6 +99,7 @@ class _PresenterPageState extends State<PresenterPage> {
   late PDFViewController _pdfController;
   int? _currentPage = 0;
   int? _totalPages = 0;
+  late String chosenFile = '';
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,6 +217,14 @@ class _PresenterPageState extends State<PresenterPage> {
       final path1 = 'files/$chosenFile';
       final ref = FirebaseStorage.instance.ref().child(path1);
       ref.putFile(File(selectedFile!.path));
+      DatabaseReference _slideref = FirebaseDatabase.instance
+          .ref()
+          .child('presentation_name')
+          .child('name');
+      Map<String, dynamic> updateData = {
+        'name': chosenFile,
+      };
+      _slideref.update(updateData);
     }
   }
 }

@@ -49,6 +49,11 @@ class _PresentationPageState extends State<PresentationPage> {
     });*/
   //}
 
+  void initState() {
+    super.initState();
+    _fApp;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
