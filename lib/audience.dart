@@ -39,10 +39,9 @@ int? _currentPage1 = 0;
 late File file1 = File('');
 int currentSlideNumber = 1;
 bool _isPDFloaded = true;
+List<String> fileList = [];
 
 class AudiencePage extends StatefulWidget {
-  //final File files;
-  //AudiencePage({required this.files});
   @override
   _AudiencePageState createState() => _AudiencePageState();
 }
@@ -61,6 +60,8 @@ class _AudiencePageState extends State<AudiencePage> {
 
   DatabaseReference _slideref2 =
       FirebaseDatabase.instance.ref().child('presentation_name').child('name');
+
+  DatabaseReference filesRef = FirebaseDatabase.instance.ref().child('files');
 
   Future<String> getDownloadUrl(String filePath) async {
     _slideref2.onValue.listen((event) {
@@ -88,27 +89,36 @@ class _AudiencePageState extends State<AudiencePage> {
     return new_file;
   }
 
-  void loadDocument() async {
+  Future<void> loadDocument() async {
     String url = await getDownloadUrl(filepath);
     pdfUrl = url;
     print(filepath);
 
     print(chosenFile1);
     file1 = await downloadFile(url, chosenFile1);
+  }
 
-    //final bytes = await file.readAsBytes();
+  Future<List<String>> getListOfFiles() async {
+    try {
+      Reference storageRef = FirebaseStorage.instance.ref().child('files');
+      ListResult result = await storageRef.listAll();
 
-    //final pdf = await pdflib.PdfDocument.openFile(file1.path);
+      // Iterate over each item in the result
+      for (var item in result.items) {
+        String fileName = item.name;
+        fileList.add(fileName);
+      }
+    } catch (e) {
+      print('Error retrieving list of files: $e');
+    }
 
-    //setState(() {
-    //document = pdf;
-    //});
+    return fileList;
   }
 
   void initState() {
     // TODO: implement initState
     super.initState();
-    //_fApp;
+
     loadDocument();
     _slideref.onValue.listen((event) {
       final dynamic value = event.snapshot.value;
@@ -121,6 +131,12 @@ class _AudiencePageState extends State<AudiencePage> {
           });
         }
       }
+    });
+
+    getListOfFiles().then((files) {
+      setState(() {
+        fileList = files;
+      });
     });
   }
 
@@ -147,60 +163,125 @@ class _AudiencePageState extends State<AudiencePage> {
   }
 
   Widget content() {
-    return Column(
-      children: [
-        Expanded(
-          child: PDFView(
-            filePath: file1.path,
-            onViewCreated: (PDFViewController pdfController) {
-              _pdfController = pdfController;
-              _pdfController.getPageCount().then((count) {
-                setState(() {
-                  _totalPages = count;
-                });
-              });
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Scaffold(
+                    appBar: AppBar(
+                      title: Text(chosenFile1),
+                    ),
+                    body: Column(
+                      children: [
+                        Expanded(
+                          child: PDFView(
+                            filePath: file1.path,
+                            onViewCreated: (PDFViewController pdfController) {
+                              _pdfController = pdfController;
+                              _pdfController.getPageCount().then((count) {
+                                setState(() {
+                                  _totalPages = count;
+                                });
+                              });
+                            },
+                            onPageChanged: (int? page, int? total) {
+                              setState(() {
+                                _currentPage1 = page;
+                                _totalPages = total;
+                                // change_slide_number(_currentPage);
+                              });
+                            },
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                if (_pdfController != null &&
+                                    _currentPage! > 0) {
+                                  _pdfController.setPage(_currentPage! - 1);
+                                  //change_slide_number(_currentPage);
+                                }
+                              },
+                              icon: Icon(Icons.arrow_back),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                if (_pdfController != null &&
+                                    _currentPage! < _totalPages! - 1) {
+                                  _pdfController.setPage(_currentPage! + 1);
+                                  //change_slide_number(_currentPage);
+                                }
+                              },
+                              icon: Icon(Icons.arrow_forward),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            // Navigate back to the main menu
+                            Navigator.pop(context);
+                          },
+                          icon: Icon(Icons.pause),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
             },
-            onPageChanged: (int? page, int? total) {
-              setState(() {
-                _currentPage1 = page;
-                _totalPages = total;
-                // change_slide_number(_currentPage);
-              });
-            },
+            child: Text(
+              'Start last started presentation',
+              style: TextStyle(fontSize: 18.0),
+            ),
           ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: () {
-                if (_pdfController != null && _currentPage! > 0) {
-                  _pdfController.setPage(_currentPage! - 1);
-                  //change_slide_number(_currentPage);
-                }
-              },
-              icon: Icon(Icons.arrow_back),
+          SizedBox(height: 16.0),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FileListWidget(pdfFiles: fileList),
+                ),
+              );
+            },
+            child: Text(
+              'Show available Presentations',
+              style: TextStyle(fontSize: 18.0),
             ),
-            IconButton(
-              onPressed: () {
-                if (_pdfController != null &&
-                    _currentPage! < _totalPages! - 1) {
-                  _pdfController.setPage(_currentPage! + 1);
-                  //change_slide_number(_currentPage);
-                }
-              },
-              icon: Icon(Icons.arrow_forward),
-            ),
-          ],
-        ),
-        IconButton(
-          onPressed: () {
-            // Navigate back to the main menu
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.pause),
-        ),
-      ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FileListWidget extends StatelessWidget {
+  final List<String> pdfFiles;
+
+  FileListWidget({required this.pdfFiles});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Available Presentations'),
+      ),
+      body: ListView.builder(
+        itemCount: pdfFiles.length,
+        itemBuilder: (context, index) {
+          String fileName = pdfFiles[index];
+          return ListTile(
+            title: Text(fileName),
+          );
+        },
+      ),
     );
   }
 }
