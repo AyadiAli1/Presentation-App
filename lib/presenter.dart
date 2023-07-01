@@ -7,7 +7,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+
 //import 'shared_variables.dart';
+int settttttttttttttt = 1;
 
 class PresentationPage extends StatefulWidget {
   final File file;
@@ -27,31 +29,9 @@ class _PresentationPageState extends State<PresentationPage> {
 
   int? _totalPages = 0;
 
-  // DatabaseReference _slideref = FirebaseDatabase.instance
-  //   .ref()
-  // .child('slide_nummer')
-  ////.child('keyToUpdate');
-
-  //void initState() {
-  // super.initState();
-  //isten for changes
-  /* _slideref.onValue.listen((event) {
-      final dynamic value = event.snapshot.value;
-      if (value != null && value is Map<Object?, Object?>) {
-        final dynamic keyToUpdate = value['keyToUpdate'];
-        if (keyToUpdate != null && keyToUpdate is int) {
-          setState(() {
-            _currentPage = keyToUpdate;
-            _pdfController.setPage(_currentPage);
-          });
-        }
-      }
-    });*/
-  //}
-
   void initState() {
     super.initState();
-    _fApp;
+    // _fApp;
   }
 
   @override
